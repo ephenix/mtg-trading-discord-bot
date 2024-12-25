@@ -30,3 +30,19 @@ The bot will then present a modal dialog with two fields:
 Additionally, there is a 4000 character limit to the have and the want text boxes. To add additional orders, use the 'add' mode on a separate command. This is a discord limitation.
 
 ---
+
+# Running the bot
+
+* create a discord app
+* create a .env file with your discord app token:
+
+```
+TOKEN = <token>
+```
+
+* add the app to your server
+* run bot.py
+
+* eventually, host this on a server somewhere.
+
+Someday this will be a public bot with per-server storage and optional global trade requests. Today is not that day.
