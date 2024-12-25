@@ -11,17 +11,6 @@ bot = discord.Bot()
 async def on_ready():
     print(f"{bot.user} is ready and online!")
 
-#@bot.slash_command(name="hello", description="Say hello to the bot")
-#async def hello(ctx: discord.ApplicationContext):
-#    await ctx.respond("Hey!",ephemeral=True)
-
-#@bot.slash_command(name="trade", description="Create trade entries")
-#async def trade(ctx: discord.ApplicationContext,
-#                trade_type: discord.Option(str, choices=['have', 'want', 'list', 'remove']),
-#                method: discord.Option(str, choices=['add','overwrite']),%
-#                content: discord.Attachment):
-#    await ctx.respond("Hey!",ephemeral=True)
-
 class TradeDialog(discord.ui.Modal):
     def __init__(self, ctx, options, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
