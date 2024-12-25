@@ -64,7 +64,7 @@ async def trade(ctx: discord.ApplicationContext,
                                      default="overwrite", 
                                      description="Overwrite existing orders or add new?"
                                     ), # type: ignore
-                version_strict_search: discord.Option(bool,description="Look only for the specified version.",default=False), # type: ignore
+                strict_version: discord.Option(bool,description="Look only for the specified version.",default=False), # type: ignore
                 trade_only: discord.Option(bool,description="Search only for cards for trade",default=False), # type: ignore
                 sell_only: discord.Option(bool,description="List cards as only for sale, not trades",default=False), # type: ignore
             ):
@@ -72,7 +72,7 @@ async def trade(ctx: discord.ApplicationContext,
         print(f"trade function called by {ctx.author.global_name}({ctx.author.id})")
         options = {
             'mode': mode,
-            'version_strict_search': version_strict_search,
+            'strict_version': strict_version,
             'trade_only': trade_only,
             'sell_only': sell_only
         }
@@ -86,23 +86,13 @@ async def trade_help(ctx: discord.ApplicationContext):
     try:
         print(f"help function called by {ctx.author.global_name}({ctx.author.id})")
         await ctx.respond("""
-# Welcome to the MTG Trading Discord Bot.
-- This is a bot which tracks the cards people are hunting for and/or offering to trade!
-- Begin by creating a moxfield decklist for your want list and your 'have' list.
-- You can create two separate decks, or use the sideboard function to keep these lists separate.
-- Remember to add the correct set and version of cards to the deck if you are offering -- this tool supports strict version matching.
-- Once complete, export your decklist using the "export for moxfield" option, which includes the set / version data for each card.
-
 # Using the `/trade` command.
 
-`/trade` has 4 optional parameters:
-
+Parameters: 
+                          
 * `mode` (add | **overwrite**): Overwrite is the default -- each time you run the trade command, all of your orders are replaced by the new list.
 
-    If you have some orders you wish to have unique settings for -- such as some cards you care about the set/version, and other you don't,
-    add these separately using the "add" mode.
-
-* `version_strict_search` (True | **False**) -- metadata applied to "Want" cards -- if True, these cards will only match 'haves' if the set/version matches.
+* `strict_version` (True | **False**) -- metadata applied to "Want" cards -- if True, these cards will only match 'haves' if the set/version matches.
 
 * `trade_only` (True | **False**) -- metadata applied to "Want" cards -- if True, will only match 'haves' that do NOT have the 'sell_only" flag applied.
 
@@ -113,20 +103,28 @@ The bot will then present a modal dialog with two fields:
 * `want` - text box which takes a list of cards exported from moxfield.
 
 * `have` - text box which takes a list of cards exported from moxfield.
+                          
+---
+                          
+# Examples:
 
-example:
+`/trade strict_version=True
+    wanted:
+        1 Black Lotus (LEA) 232
+    have:
+        1 Vizzerdrix (7ED) 110
+                          
+---
 
-# Using the `/list_trades` command.
-
-`/list_trades` takes 1 required parameter:
-
-* `user` (Discord.user)
-
-example:
-
-`/list_trades @username`
-
-Additionally, there is a 4000 character limit that limits us to about 120 cards per request..""", ephemeral=True)
+`/list_trades @<username>`
+                          
+---
+                          
+`/find_matches`
+                          
+---
+                          
+""", ephemeral=True)
     except Exception as e:
         await ctx.respond(f"An error occurred: {str(e)}", ephemeral=True)
 
@@ -147,7 +145,7 @@ async def list_trades(ctx: discord.ApplicationContext,
             wants = []
             for card in database['users'][f"{user.id}"]['want']:
                 s = f"{card['quantity']}x {card['card']} {card['version']}"
-                if card['version_strict_search']:
+                if card['strict_version']:
                     s += " (EXACT MATCH)"
                 wants.append(s)
 
@@ -167,7 +165,7 @@ async def find_matches(ctx: discord.ApplicationContext):
                 for entry_id, entry_data in database['cards']['have'][card['card']].items():
                     if entry_data["userid"] != card["userid"]:
                         if(card['trade_only']==False or entry_data["sell_only"] == False):
-                            if(card['version_strict_search']==True):
+                            if(card['strict_version']==True):
                                 if(card['version'] == entry_data['version']):
                                     await ctx.respond(f"<@{entry_data['userid']}> has a {entry_data['card']} {entry_data['version']} available!",ephemeral=True)
                             else:
@@ -177,7 +175,7 @@ async def find_matches(ctx: discord.ApplicationContext):
                 for entry_id, entry_data in database['cards']['want'][card['card']].items():
                     if entry_data["userid"] != card["userid"]:
                         if(entry_data['trade_only']==False or card["sell_only"] == False):
-                            if(entry_data['version_strict_search']==True):
+                            if(entry_data['strict_version']==True):
                                 if(entry_data['version'] == card['version']):
                                     await ctx.respond(f"<@{entry_data['userid']}> may be interested in your {card['card']} {card['version']}!", ephemeral=True)
                             else:
@@ -217,7 +215,7 @@ def process(userid, data, options):
                             'uid':uid
                     }
                     if method=="want":
-                        entry["version_strict_search"] = options["version_strict_search"]
+                        entry["strict_version"] = options["strict_version"]
                         entry["trade_only"] = options["trade_only"]
                     if method=="have":
                         entry["sell_only"] = options["sell_only"]
