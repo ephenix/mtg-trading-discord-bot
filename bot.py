@@ -21,8 +21,8 @@ class TradeDialog(discord.ui.Modal):
 
     async def callback(self, interaction: discord.Interaction):
         embed = discord.Embed(title=f"{self.ctx.author.global_name}'s Trade Listing")
-        embed.add_field(name="want", value=self.children[0].value)
-        embed.add_field(name="have", value=self.children[1].value)
+        embed.add_field(name=f"*WANT* (version-strict: {self.options['version_strict_search']}, trade-only: {self.options['trade_only']})", value=self.children[0].value)
+        embed.add_field(name=f"*HAVE* (sell_only: {self.options['sell_only']})", value=self.children[1].value)
         await interaction.response.send_message(embeds=[embed])
         data = {
             "want": self.children[0].value,
@@ -100,7 +100,22 @@ Additionally, there is a 4000 character limit to the have and the want text boxe
 async def list_trades(ctx: discord.ApplicationContext,
                       user: discord.User):
     if f"{user.id}" in database['users']:
-        await ctx.respond(json.dumps(database['users'][f"{user.id}"],indent=4),ephemeral=True)
+        
+        has = []
+        for card in database['users'][f"{user.id}"]['have']:
+            s = f"{card['quantity']}x {card['card']} {card['version']}"
+            if card['sell_only']:
+                s += " (FOR SALE ONLY)"
+            has.append(s)
+        await ctx.respond(f"<@{user.id}> HAS: \n" + "\n".join(has), ephemeral=True)
+        wants = []
+        for card in database['users'][f"{user.id}"]['want']:
+            s = f"{card['quantity']}x {card['card']} {card['version']}"
+            if card['version_strict_search']:
+                s += " (EXACT MATCH)"
+            wants.append(s)
+
+        await ctx.respond(f"<@{user.id}> WANTS: \n" + "\n".join(wants), ephemeral=True)
     else:
         await ctx.respond(f"no trades found for user <@{user.id}>.", ephemeral=True)
 
@@ -168,7 +183,7 @@ def process(userid, data, options):
                 if card not in database['cards'][method]:
                     database['cards'][method][card] = {}
                 database['cards'][method][card][uid] = entry
-    write_database(database)
+    write_database()
 
 # --------------------------
 
