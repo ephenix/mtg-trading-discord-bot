@@ -20,10 +20,9 @@ class TradeDialog(discord.ui.Modal):
         self.add_item(discord.ui.InputText(label="Have", style=discord.InputTextStyle.long, required=False))
 
     async def callback(self, interaction: discord.Interaction):
-        embed = discord.Embed(title=f"{self.ctx.author.global_name}'s Trade Listing")
+        embed = discord.Embed(title=f"{self.ctx.author.global_name}'s Trade Listing (option: [{self.options['mode']}])")
         embed.add_field(name=f"*WANT* (version-strict: {self.options['version_strict_search']}, trade-only: {self.options['trade_only']})", value=self.children[0].value)
         embed.add_field(name=f"*HAVE* (sell_only: {self.options['sell_only']})", value=self.children[1].value)
-        await interaction.response.send_message(embeds=[embed])
         data = {
             "want": self.children[0].value,
             "have": self.children[1].value
@@ -33,6 +32,7 @@ class TradeDialog(discord.ui.Modal):
             if validate(self.children[1].value):
                 process(self.ctx.author.id,data,self.options)
                 await find_matches(self.ctx)
+                await interaction.response.send_message(embeds=[embed])
             else:
                 await self.ctx.respond("Input validation error with 'Have' field. Please use moxfield format ie:\n1 Ajani, Nacatl Pariah // Ajani, Nacatl Avenger (MH3) 237\n1 Atraxa, Grand Unifier (ONE) 316\n5 Blood Crypt (RTR) 238",ephemeral=True)
         else:
@@ -80,25 +80,45 @@ async def trade_help(ctx: discord.ApplicationContext):
 - Remember to add the correct set and version of cards to the deck if you are offering -- this tool supports strict version matching.
 - Once complete, export your decklist using the "export for moxfield" option, which includes the set / version data for each card.
 
-Using the `/trade` command.
-`/trade` has 4 optional parameters:
-    `mode` (add | **overwrite**): Overwrite is the default -- each time you run the trade command, all of your orders are replaced by the new list.
-        If you have some orders you wish to have unique settings for -- such as some cards you care about the set/version, and other you don't,
-        add these separately using the "add" mode.
-    `version_strict_search` (True | **False**) -- metadata applied to "Want" cards -- if True, these cards will only match 'haves' if the set/version matches.
-    `trade_only` (True | **False**) -- metadata applied to "Want" cards -- if True, will only match 'haves' that do NOT have the 'sell_only" flag applied.
-    `sell_only` (True | **False**) -- metadata applied to "Have" cards -- if True, will only match 'wants' that do NOT have "trade_only" flag applied.
-                      
-    `want` - text box which takes a list of cards exported from moxfield.
-    `have` - text box which takes a list of cards exported from moxfield.
+# Using the `/trade` command.
 
-Additionally, there is a 4000 character limit to the have and the want text boxes. To add additional orders, use the 'add' mode on a separate command. This is a discord limitation.
-                     
-                      """, ephemeral=True)
+`/trade` has 4 optional parameters:
+
+* `mode` (add | **overwrite**): Overwrite is the default -- each time you run the trade command, all of your orders are replaced by the new list.
+
+    If you have some orders you wish to have unique settings for -- such as some cards you care about the set/version, and other you don't,
+    add these separately using the "add" mode.
+
+* `version_strict_search` (True | **False**) -- metadata applied to "Want" cards -- if True, these cards will only match 'haves' if the set/version matches.
+
+* `trade_only` (True | **False**) -- metadata applied to "Want" cards -- if True, will only match 'haves' that do NOT have the 'sell_only" flag applied.
+
+* `sell_only` (True | **False**) -- metadata applied to "Have" cards -- if True, will only match 'wants' that do NOT have "trade_only" flag applied.
+
+The bot will then present a modal dialog with two fields:
+
+* `want` - text box which takes a list of cards exported from moxfield.
+
+* `have` - text box which takes a list of cards exported from moxfield.
+
+example:
+
+# Using the `/list_trades` command.
+
+`/list_trades` takes 1 required parameter:
+
+* `user` (Discord.user)
+
+example:
+
+`/list_trades @username`
+
+Additionally, there is a 4000 character limit that limits us to about 120 cards per request..""", ephemeral=True)
 
 @bot.slash_command()
 async def list_trades(ctx: discord.ApplicationContext,
                       user: discord.User):
+    print(f"list_trades function called by {ctx.author.global_name}({ctx.author.id})")
     if f"{user.id}" in database['users']:
         
         has = []

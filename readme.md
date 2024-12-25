@@ -5,7 +5,11 @@
 - Remember to add the correct set and version of cards to the deck if you are offering -- this tool supports strict version matching.
 - Once complete, export your decklist using the "export for moxfield" option, which includes the set / version data for each card.
 
-Using the `/trade` command.
+# Getting started:
+
+After installation, type `/trade_help` to see this same documentation in your server!
+
+# Using the `/trade` command.
 
 `/trade` has 4 optional parameters:
 
@@ -26,8 +30,21 @@ The bot will then present a modal dialog with two fields:
 
 * `have` - text box which takes a list of cards exported from moxfield.
 
+example:
+
+# Using the `/list_trades` command.
+
+`/list_trades` takes 1 required parameter:
+
+* `user` (Discord.user)
+
+example:
+
+`/list_trades @username`
 
 Additionally, there is a 4000 character limit to the have and the want text boxes. To add additional orders, use the 'add' mode on a separate command. This is a discord limitation.
+
+This realistically limits the number of cards to about 120 per request. Once a user has more orders than this, the `/list_trades` command will cease working for them as well.
 
 ---
 
